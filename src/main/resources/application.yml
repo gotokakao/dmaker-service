@@ -1,0 +1,8 @@
+spring:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    show_sql: true
+    propertiese:
+      format_sql: true
