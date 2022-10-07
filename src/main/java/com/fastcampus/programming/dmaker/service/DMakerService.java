@@ -3,6 +3,7 @@ package com.fastcampus.programming.dmaker.service;
 import com.fastcampus.programming.dmaker.Exception.DMakerErrorCode;
 import com.fastcampus.programming.dmaker.Exception.DMakerException;
 import com.fastcampus.programming.dmaker.code.StatusCode;
+import com.fastcampus.programming.dmaker.constant.DmakerConstant;
 import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
 import com.fastcampus.programming.dmaker.dto.DeveloperDeatilDto;
 import com.fastcampus.programming.dmaker.dto.DevelopersDto;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.fastcampus.programming.dmaker.Exception.DMakerErrorCode.*;
+import static com.fastcampus.programming.dmaker.constant.DmakerConstant.*;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +55,7 @@ public class DMakerService {
     }
 
     private void validateCreateDeveloper(CreateDeveloper.Request request) {
-        validateDeveloper(request.getDeveloperLevel(), request.getExperienceYears());
+        request.getDeveloperLevel().validateExperienceYear(request.getExperienceYears());
 
         developerRepository.findByMemberId(request.getMemberId())
                 .ifPresent((developer -> {
@@ -80,7 +82,7 @@ public class DMakerService {
 
     @Transactional
     public DeveloperDeatilDto editDeveloper(EditDeveloper.Request request, String memberId) {
-        validateDeveloper(request.getDeveloperLevel(), request.getExperienceYears());
+        request.getDeveloperLevel().validateExperienceYear(request.getExperienceYears());
 
         return DeveloperDeatilDto.fromEntity(
                 setDeveloperFromRequest(request, getDeveloperByMemberId(memberId))
@@ -92,18 +94,6 @@ public class DMakerService {
         developer.setDeveloperSkillType(request.getDeveloperSkillType());
         developer.setExperienceYears(request.getExperienceYears());
         return developer;
-    }
-
-    private void validateDeveloper(DeveloperLevel developerLevel, Integer experienceYears) {
-        if (developerLevel == DeveloperLevel.SENIOR
-                && experienceYears < 10) {
-            throw new DMakerException(DEVELOPER_LEVEL_NOT_MATCHED);
-        }
-
-        if (developerLevel == DeveloperLevel.JUNIOR
-                && experienceYears > 5) {
-            throw new DMakerException(DEVELOPER_LEVEL_NOT_MATCHED, "주니어 레벨은 5년차 미만만 해당됩니다.");
-        }
     }
 
     @Transactional

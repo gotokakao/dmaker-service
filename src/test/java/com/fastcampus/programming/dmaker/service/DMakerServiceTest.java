@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static com.fastcampus.programming.dmaker.Exception.DMakerErrorCode.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -41,14 +42,20 @@ class DMakerServiceTest {
     @InjectMocks
     private DMakerService dMakerService;
 
-    private final CreateDeveloper.Request defaultCreateDeveloper = CreateDeveloper.Request.builder()
-            .developerLevel(DeveloperLevel.JUNGNIOR)
-            .developerSkillType(DeveloperSkillType.BACK_END)
-            .experienceYears(8)
-            .memberId("taemin23.kim")
-            .name("taemin")
-            .age(36)
-            .build();
+    private CreateDeveloper.Request getCreateRequest(
+            DeveloperLevel developerLevel,
+            DeveloperSkillType developerSkillType,
+            Integer experienceYear
+    ){
+        return CreateDeveloper.Request.builder()
+                .developerLevel(developerLevel)
+                .developerSkillType(developerSkillType)
+                .experienceYears(experienceYear)
+                .memberId("taemin23.kim")
+                .name("taemin")
+                .age(36)
+                .build();
+    }
 
     private final Developer defaultDeveloper = Developer.builder()
             .developerLevel(DeveloperLevel.JUNGNIOR)
@@ -83,7 +90,7 @@ class DMakerServiceTest {
         ArgumentCaptor<Developer> captor = ArgumentCaptor.forClass(Developer.class);
 
         //when
-        dMakerService.createDeveloper(defaultCreateDeveloper);
+        dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.JUNGNIOR, DeveloperSkillType.BACK_END,8));
 
         //then
         verify(developerRepository, times(1))
@@ -96,9 +103,21 @@ class DMakerServiceTest {
     }
 
     @Test
+    void createDeveloperTest_fail_experienceYear_not_matched(){
+        //given
+        //when
+        DMakerException dMakerException = assertThrows(
+                DMakerException.class, () -> dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.SENIOR, DeveloperSkillType.BACK_END, 9))
+        );
+
+        assertEquals("개발자 레벨이 개발기간과 부적합 합니다.", dMakerException.getDetailErrorMessage());
+        assertEquals(DEVELOPER_LEVEL_NOT_MATCHED, dMakerException.getDMakerErrorCode());
+    }
+
+    @Test
     void createDeveloperTest_failed(){
         //given
-        CreateDeveloper.Request request = defaultCreateDeveloper;
+        CreateDeveloper.Request request = getCreateRequest(DeveloperLevel.JUNGNIOR, DeveloperSkillType.BACK_END, 8);
 
         given(developerRepository.findByMemberId(anyString()))
                 .willReturn(Optional.of(Developer.builder()
@@ -108,7 +127,7 @@ class DMakerServiceTest {
         //when
 
         DMakerException dMakerException = assertThrows(DMakerException.class, () -> dMakerService.createDeveloper(request));
-        assertEquals(dMakerException.getDetailErrorMessage(), DMakerErrorCode.EXIST_MEMBER_ID.getMessage());
+        assertEquals(dMakerException.getDetailErrorMessage(), EXIST_MEMBER_ID.getMessage());
     }
 
 }
