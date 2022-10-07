@@ -51,7 +51,7 @@ public class CreateDeveloper {
         private String memberId;
         private String name;
 
-        public static Response fromEntity(Developer developer){
+        public static Response fromEntity(@NotNull Developer developer){
             return  Response.builder()
                     .developerLevel(developer.getDeveloperLevel())
                     .developerSkillType(developer.getDeveloperSkillType())

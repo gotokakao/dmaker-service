@@ -35,7 +35,13 @@ public class DMakerService {
 
         validateCreateDeveloper(request);
 
-        Developer developer = Developer.builder()
+        return CreateDeveloper.Response.fromEntity(
+                developerRepository.save(createDeveloperFromRequest(request))
+        );
+    }
+
+    private Developer createDeveloperFromRequest(CreateDeveloper.Request request){
+        return Developer.builder()
                 .developerLevel(request.getDeveloperLevel())
                 .developerSkillType(request.getDeveloperSkillType())
                 .experienceYears(request.getExperienceYears())
@@ -44,10 +50,6 @@ public class DMakerService {
                 .statusCode(StatusCode.EMPLOYED)
                 .name(request.getName())
                 .build();
-
-        developerRepository.save(developer);
-
-        return CreateDeveloper.Response.fromEntity(developer);
     }
 
     private void validateCreateDeveloper(CreateDeveloper.Request request) {
@@ -59,30 +61,37 @@ public class DMakerService {
                 }));
     }
 
+    @Transactional(readOnly = true)
+    private Developer getDeveloperByMemberId(String memberId){
+        return developerRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new DMakerException(NO_DATA_FOUND));
+    }
+
+    @Transactional(readOnly = true)
     public List<DevelopersDto> getAllEmployedDevelopers() {
         return developerRepository.findDevelopersByStatusCodeEquals(StatusCode.EMPLOYED)
                 .stream().map(DevelopersDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    public DeveloperDeatilDto getDeveloperDetail(String memerId) {
-        return developerRepository.findByMemberId(memerId)
-                .map(DeveloperDeatilDto::fromEntity)
-                .orElseThrow(() -> new DMakerException(NO_DATA_FOUND));
+    public DeveloperDeatilDto getDeveloperDetail(String memberId) {
+        return DeveloperDeatilDto.fromEntity(getDeveloperByMemberId(memberId));
     }
 
     @Transactional
     public DeveloperDeatilDto editDeveloper(EditDeveloper.Request request, String memberId) {
-        Developer developer = developerRepository.findByMemberId(memberId)
-                        .orElseThrow(() -> new DMakerException(NO_DATA_FOUND));
-
         validateDeveloper(request.getDeveloperLevel(), request.getExperienceYears());
 
+        return DeveloperDeatilDto.fromEntity(
+                setDeveloperFromRequest(request, getDeveloperByMemberId(memberId))
+        );
+    }
+
+    private Developer setDeveloperFromRequest(EditDeveloper.Request request, Developer developer) {
         developer.setDeveloperLevel(request.getDeveloperLevel());
         developer.setDeveloperSkillType(request.getDeveloperSkillType());
         developer.setExperienceYears(request.getExperienceYears());
-
-        return DeveloperDeatilDto.fromEntity(developer);
+        return developer;
     }
 
     private void validateDeveloper(DeveloperLevel developerLevel, Integer experienceYears) {

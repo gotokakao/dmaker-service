@@ -25,26 +25,26 @@ public class DMakerController {
     }
 
     @GetMapping("/developer/{memberId}")
-    public DeveloperDeatilDto getDeveloperDetail(@PathVariable("memberId") String memberId){
+    public DeveloperDeatilDto getDeveloperDetail(@PathVariable("memberId") final String memberId){
         return dMakerService.getDeveloperDetail(memberId);
     }
 
 
     @PostMapping("/create-developers")
-    public CreateDeveloper.Response createDeveloper(@Valid  @RequestBody CreateDeveloper.Request request){
+    public CreateDeveloper.Response createDeveloper(@Valid  @RequestBody final CreateDeveloper.Request request){
         log.info("request : {}", request);
 
         return dMakerService.createDeveloper(request);
     }
 
     @PutMapping("/developer/{memberId}")
-    public DeveloperDeatilDto editDeveloper(@PathVariable("memberId") String memberId,
+    public DeveloperDeatilDto editDeveloper(@PathVariable("memberId") final String memberId,
                                             @RequestBody  EditDeveloper.Request request){
         return dMakerService.editDeveloper(request, memberId);
     }
 
     @DeleteMapping("/developer/{memberId}")
-    public DeveloperDeatilDto deleteDeveloper(@PathVariable("memberId")String memberId){
+    public DeveloperDeatilDto deleteDeveloper(@PathVariable("memberId") final String memberId){
         return dMakerService.deleteDeveloper(memberId);
     }
 
